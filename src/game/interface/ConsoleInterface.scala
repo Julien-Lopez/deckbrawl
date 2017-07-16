@@ -14,7 +14,8 @@ object ConsoleInterface extends GameInterface {
   override def startGame(teams: Array[Team]): Unit = Console println "Deck brawl!"
   override def order(teams: Array[Team]): Array[Team] = teams
   override def draw(p: Player, cards: List[Card]): Unit = Console println p + " draws!"
-  override def checkGraveyard(p: Player, graveyardOwner: Player): Unit = Console println p + " checks " + graveyardOwner + "'s graveyard."
+  override def checkGraveyard(p: Player, graveyardOwner: Player): Unit =
+    Console println p + " checks " + graveyardOwner + "'s graveyard."
   override def moveError(c: Card): Unit = Console println "Invalid card to play: " + c
   override def wins(winners: Array[Team]): Unit = Console println winners + " win!"
   @tailrec
@@ -63,6 +64,7 @@ object ConsoleInterface extends GameInterface {
 
   override def endTurn(player: Player): Unit = Console println player + " ends turn!"
 
+  @tailrec
   override def readCard(max: Int): Int =
     try
     {

@@ -3,7 +3,7 @@ package deckbrawl
 import deckbrawl.JSONParser.{JSONInteger, JSONList, JSONObject, JSONString}
 import game.card.{Card, Effect, Monster, Spell}
 import game.interface.ConsoleInterface
-import game.{ClassicGame, Team}
+import game.{Game, Team}
 import player.Human
 import player.ai.Dummy
 
@@ -35,6 +35,8 @@ object DeckBrawl {
   }
 
   def main(args: Array[String]): Unit = {
-    new ClassicGame(ConsoleInterface).start(Array(new Team(Array(new Human("Yugi"))), new Team(Array(new Dummy("Joey")))))
+    val player1 = new Human("Tea")
+    val player2 = new Dummy("Joey")
+    new Game(ConsoleInterface).start(Array(new Team(Array(player1)), new Team(Array(player2))))
   }
 }
