@@ -8,9 +8,11 @@ import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
 abstract class Player(val name: String) {
-  val deck: ListBuffer[Card] = ListBuffer.fill(40)(if (Random.nextBoolean()) DeckBrawl.cardDatabase(1)
-                                                   else DeckBrawl.cardDatabase(2))
+  val deck: ListBuffer[Card] = ListBuffer.fill(40)(if (Random.nextBoolean()) DeckBrawl.cardDatabase(1).createCard()
+                                                   else DeckBrawl.cardDatabase(2).createCard())
   val hand: ListBuffer[Card] = ListBuffer()
+  var monsterBoard: ListBuffer[Card] = new ListBuffer()
+  var mpBoard: ListBuffer[Card] = new ListBuffer()
   val graveyard: ListBuffer[Card] = ListBuffer()
   var life: Int = 0
 

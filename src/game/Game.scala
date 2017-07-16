@@ -1,6 +1,7 @@
 package game
 
 import deckbrawl.DeckBrawlException
+import game.card.Monster
 import game.interface.GameInterface
 import player._
 
@@ -11,6 +12,8 @@ class Game(protected val interface: GameInterface) {
   protected val actionHistory: ListBuffer[(Player, Action)] = ListBuffer()
   val startHand: Int = 5
   val startLife: Int = 30
+  val monsterZones: Int = 5
+  val mpZones: Int = 5
   val nbCardsDrawnInDrawPhase: Int = 1
 
   def start(teams: Array[Team]): Unit = {
@@ -23,7 +26,7 @@ class Game(protected val interface: GameInterface) {
     // Give starting hand and life to players
     teams.foreach(team => team.players.foreach(p => {
       p.life = startLife
-      interface.draw(p, p.draw(startHand))
+      interface.firstDraw(p, p.draw(startHand), teams)
     }))
     interface.wins(playerTurnLoop(teams, schedule))
   }
@@ -37,7 +40,7 @@ class Game(protected val interface: GameInterface) {
     // Turn starts
     interface.startTurn(player)
     // Player draws at the beginning of the turn
-    interface.draw(player, player.draw(nbCardsDrawnInDrawPhase))
+    interface.draw(player, player.draw(nbCardsDrawnInDrawPhase), teams)
     // As long as the last action was not ending the turn and there is no winners we execute player actions
     while (action != EndTurn && res.isEmpty) {
       // Request a new action from the player
@@ -47,7 +50,25 @@ class Game(protected val interface: GameInterface) {
       // Execute the action
       action match {
         case CheckGraveyard(graveyardOwner) => interface.checkGraveyard(player, graveyardOwner)
-        case PlayCard(i) => player.hand.remove(i)
+        case PlayCard(p, i) =>
+          if (p != player || player.monsterBoard.size == 5)
+            interface.moveError(p.hand(i))
+          else {
+            player.monsterBoard += player.hand.remove(i)
+            interface.printBoardForPlayer(player, teams)
+          }
+        case Attack(atkPlayer, atkCardIndex, defPlayer, defCardIndex) =>
+          val atkCard = atkPlayer.monsterBoard(atkCardIndex).asInstanceOf[Monster]
+          val defCard = defPlayer.monsterBoard(defCardIndex).asInstanceOf[Monster]
+          defCard.life -= atkCard.atk
+          atkCard.life -= defCard.atk
+          if (defCard.life <= 0) defPlayer.graveyard += defPlayer.hand.remove(defCardIndex)
+          if (atkCard.life <= 0) atkPlayer.graveyard += atkPlayer.hand.remove(defCardIndex)
+          interface.printBoardForPlayer(player, teams)
+        case AttackPlayer(atkPlayer, atkCardIndex, defPlayer) =>
+          val atkCard = atkPlayer.monsterBoard(atkCardIndex).asInstanceOf[Monster]
+          defPlayer.life -= atkCard.atk
+          interface.printBoardForPlayer(player, teams)
         case EndTurn => interface.endTurn(player)
         case HumanInput => throw DeckBrawlException() // TODO: Better handling of HumanInput
       }
