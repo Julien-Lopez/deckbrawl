@@ -1,11 +1,12 @@
 package game
 
 import deckbrawl.DeckBrawlException
-import game.card.Monster
+import game.card.{Card, Monster}
 import game.interface.GameInterface
 import player._
 
 import scala.annotation.tailrec
+import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 class Game(protected val interface: GameInterface) {
@@ -15,6 +16,7 @@ class Game(protected val interface: GameInterface) {
   val monsterZones: Int = 5
   val mpZones: Int = 5
   val nbCardsDrawnInDrawPhase: Int = 1
+  val nbAttacksPerTurn: Int = 1
 
   def start(teams: Array[Team]): Unit = {
     val schedule = new Schedule(teams)
@@ -33,9 +35,18 @@ class Game(protected val interface: GameInterface) {
 
   @tailrec
   private def playerTurnLoop(teams: Array[Team], schedule: Schedule): Array[Team] = {
-    val player = schedule.nextPlayerTurn()
+    playerTurn(schedule.nextPlayerTurn(), teams) match {
+      // We have winners, the game is over
+      case Some(x) => x
+      // We don't have winners, we start the next player's turn
+      case None => playerTurnLoop(teams, schedule)
+    }
+  }
+
+  private def playerTurn(player: Player, teams: Array[Team]): Option[Array[Team]] = {
     var action: Action = null
     var res: Option[Array[Team]] = None
+    val nbAttacks: mutable.Map[Card, Int] = new mutable.HashMap()
 
     // Turn starts
     interface.startTurn(player)
@@ -60,27 +71,34 @@ class Game(protected val interface: GameInterface) {
         case Attack(atkPlayer, atkCardIndex, defPlayer, defCardIndex) =>
           val atkCard = atkPlayer.monsterBoard(atkCardIndex).asInstanceOf[Monster]
           val defCard = defPlayer.monsterBoard(defCardIndex).asInstanceOf[Monster]
-          defCard.life -= atkCard.atk
-          atkCard.life -= defCard.atk
-          if (defCard.life <= 0) defPlayer.graveyard += defPlayer.hand.remove(defCardIndex)
-          if (atkCard.life <= 0) atkPlayer.graveyard += atkPlayer.hand.remove(defCardIndex)
-          interface.printBoardForPlayer(player, teams)
+          def atkCardNbAttacks = nbAttacks.getOrElse(atkCard, 0)
+          if (atkCardNbAttacks < nbAttacksPerTurn) {
+            nbAttacks.put(atkCard, atkCardNbAttacks + 1)
+            defCard.life -= atkCard.atk
+            atkCard.life -= defCard.atk
+            if (defCard.life <= 0) defPlayer.graveyard += defPlayer.hand.remove(defCardIndex)
+            if (atkCard.life <= 0) atkPlayer.graveyard += atkPlayer.hand.remove(defCardIndex)
+            interface.printBoardForPlayer(player, teams)
+          }
+          else
+            interface.moveError(atkCard)
         case AttackPlayer(atkPlayer, atkCardIndex, defPlayer) =>
           val atkCard = atkPlayer.monsterBoard(atkCardIndex).asInstanceOf[Monster]
-          defPlayer.life -= atkCard.atk
-          interface.printBoardForPlayer(player, teams)
+          def atkCardNbAttacks = nbAttacks.getOrElse(atkCard, 0)
+          if (atkCardNbAttacks < nbAttacksPerTurn) {
+            nbAttacks.put(atkCard, atkCardNbAttacks + 1)
+            defPlayer.life -= atkCard.atk
+            interface.printBoardForPlayer(player, teams)
+          }
+          else
+            interface.moveError(atkCard)
         case EndTurn => interface.endTurn(player)
         case HumanInput => throw DeckBrawlException() // TODO: Better handling of HumanInput
       }
       actionHistory += ((player, action))
       res = winners(teams)
     }
-    res match {
-      // We exited the loop because we have winners, the game is over
-      case Some(x) => x
-      // We exited the loop because player's turn is over, we start the next player's turn
-      case None => playerTurnLoop(teams, schedule)
-    }
+    res
   }
 
   private def winners(teams: Array[Team]): Option[Array[Team]] = {
