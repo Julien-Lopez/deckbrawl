@@ -13,10 +13,11 @@ class Game(protected val interface: GameInterface) {
   protected val actionHistory: ListBuffer[(Player, Action)] = ListBuffer()
   val startHand: Int = 5
   val startLife: Int = 30
-  val monsterZones: Int = 5
-  val mpZones: Int = 5
+  val nbMonsterZones: Int = 5
+  val nbMpZones: Int = 5
   val nbCardsDrawnInDrawPhase: Int = 1
   val nbAttacksPerTurn: Int = 1
+  val nbNormalSummonsPerTurn: Int = 1
 
   def start(teams: Array[Team]): Unit = {
     val schedule = new Schedule(teams)
@@ -47,6 +48,7 @@ class Game(protected val interface: GameInterface) {
     var action: Action = null
     var res: Option[Array[Team]] = None
     val nbAttacks: mutable.Map[Card, Int] = new mutable.HashMap()
+    var nbNormalSummons = 0
 
     // Turn starts
     interface.startTurn(player)
@@ -62,12 +64,13 @@ class Game(protected val interface: GameInterface) {
       action match {
         case CheckGraveyard(graveyardOwner) => interface.checkGraveyard(player, graveyardOwner)
         case PlayCard(p, i) =>
-          if (p != player || player.monsterBoard.size == 5)
-            interface.moveError(p.hand(i))
-          else {
+          if (p == player && player.monsterBoard.size < nbMonsterZones && nbNormalSummons < nbNormalSummonsPerTurn) {
+            nbNormalSummons += 1
             player.monsterBoard += player.hand.remove(i)
             interface.printBoardForPlayer(player, teams)
           }
+          else
+            interface.moveError(p.hand(i))
         case Attack(atkPlayer, atkCardIndex, defPlayer, defCardIndex) =>
           val atkCard = atkPlayer.monsterBoard(atkCardIndex).asInstanceOf[Monster]
           val defCard = defPlayer.monsterBoard(defCardIndex).asInstanceOf[Monster]
