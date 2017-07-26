@@ -11,6 +11,8 @@ import scala.collection.mutable.ListBuffer
 
 class Game(protected val interface: GameInterface) {
   protected val actionHistory: ListBuffer[(Player, Action)] = ListBuffer()
+
+  // Constants
   val startHand: Int = 5
   val startLife: Int = 30
   val nbMonsterZones: Int = 5
@@ -18,6 +20,10 @@ class Game(protected val interface: GameInterface) {
   val nbCardsDrawnInDrawPhase: Int = 1
   val nbAttacksPerTurn: Int = 1
   val nbNormalSummonsPerTurn: Int = 1
+
+  // Current turn variables
+  var nbAttacks: mutable.Map[Card, Int] = _
+  var nbNormalSummons = 0
 
   def start(teams: Array[Team]): Unit = {
     val schedule = new Schedule(teams)
@@ -36,7 +42,7 @@ class Game(protected val interface: GameInterface) {
 
   @tailrec
   private def playerTurnLoop(teams: Array[Team], schedule: Schedule): Array[Team] = {
-    playerTurn(schedule.nextPlayerTurn(), teams) match {
+    playerTurn(schedule.nextPlayerTurn(), teams, schedule) match {
       // We have winners, the game is over
       case Some(x) => x
       // We don't have winners, we start the next player's turn
@@ -44,12 +50,12 @@ class Game(protected val interface: GameInterface) {
     }
   }
 
-  private def playerTurn(player: Player, teams: Array[Team]): Option[Array[Team]] = {
+  private def playerTurn(player: Player, teams: Array[Team], schedule: Schedule): Option[Array[Team]] = {
     var action: Action = null
     var res: Option[Array[Team]] = None
-    val nbAttacks: mutable.Map[Card, Int] = new mutable.HashMap()
-    var nbNormalSummons = 0
 
+    nbAttacks = new mutable.HashMap()
+    nbNormalSummons = 0
     // Turn starts
     interface.startTurn(player)
     // Player draws at the beginning of the turn
@@ -57,44 +63,54 @@ class Game(protected val interface: GameInterface) {
     // As long as the last action was not ending the turn and there is no winners we execute player actions
     while (action != EndTurn && res.isEmpty) {
       // Request a new action from the player
-      action = player.play()
+      action = player.play(this, teams)
       // If action is a human input, get it and use it as player action
       if (action == HumanInput) action = interface.humanInput(player, teams)
       // Execute the action
       action match {
         case CheckGraveyard(graveyardOwner) => interface.checkGraveyard(player, graveyardOwner)
-        case PlayCard(p, i) =>
+        case PlayCard(p, c) =>
           if (p == player && player.monsterBoard.size < nbMonsterZones && nbNormalSummons < nbNormalSummonsPerTurn) {
             nbNormalSummons += 1
-            player.monsterBoard += player.hand.remove(i)
+            player.monsterBoard += c
+            player.hand -= c
             interface.printBoardForPlayer(player, teams)
           }
-          else
-            interface.moveError(p.hand(i))
-        case Attack(atkPlayer, atkCardIndex, defPlayer, defCardIndex) =>
-          val atkCard = atkPlayer.monsterBoard(atkCardIndex).asInstanceOf[Monster]
-          val defCard = defPlayer.monsterBoard(defCardIndex).asInstanceOf[Monster]
+          else interface.moveError(c)
+        case Attack(atkPlayer, atkCard, defPlayer, defCard) =>
+          val atkCardMonster = atkCard.asInstanceOf[Monster]
+          val defCardMonster = defCard.asInstanceOf[Monster]
           def atkCardNbAttacks = nbAttacks.getOrElse(atkCard, 0)
-          if (atkCardNbAttacks < nbAttacksPerTurn) {
+          if (schedule.turn > 1 && atkCardNbAttacks < nbAttacksPerTurn) {
+            interface.attack(atkPlayer, atkCard, defPlayer, defCard)
             nbAttacks.put(atkCard, atkCardNbAttacks + 1)
-            defCard.life -= atkCard.atk
-            atkCard.life -= defCard.atk
-            if (defCard.life <= 0) defPlayer.graveyard += defPlayer.hand.remove(defCardIndex)
-            if (atkCard.life <= 0) atkPlayer.graveyard += atkPlayer.hand.remove(defCardIndex)
+            defCardMonster.life -= atkCardMonster.atk
+            atkCardMonster.life -= defCardMonster.atk
+            if (defCardMonster.life <= 0) {
+              interface.cardDestroyed(defPlayer, defCard)
+              defCardMonster.life = defCardMonster.data.origLife
+              defPlayer.monsterBoard -= defCard
+              defPlayer.graveyard += defCard
+            }
+            if (atkCardMonster.life <= 0) {
+              interface.cardDestroyed(atkPlayer, atkCard)
+              atkCardMonster.life = atkCardMonster.data.origLife
+              atkPlayer.monsterBoard -= atkCard
+              atkPlayer.graveyard += atkCard
+            }
             interface.printBoardForPlayer(player, teams)
           }
-          else
-            interface.moveError(atkCard)
-        case AttackPlayer(atkPlayer, atkCardIndex, defPlayer) =>
-          val atkCard = atkPlayer.monsterBoard(atkCardIndex).asInstanceOf[Monster]
+          else interface.moveError(atkCard)
+        case AttackPlayer(atkCard, defPlayer) =>
+          val atkCardMonster = atkCard.asInstanceOf[Monster]
           def atkCardNbAttacks = nbAttacks.getOrElse(atkCard, 0)
-          if (atkCardNbAttacks < nbAttacksPerTurn) {
+          if (schedule.turn > 1 && atkCardNbAttacks < nbAttacksPerTurn && defPlayer.monsterBoard.isEmpty) {
+            interface.attackPlayer(player, atkCard, defPlayer)
             nbAttacks.put(atkCard, atkCardNbAttacks + 1)
-            defPlayer.life -= atkCard.atk
+            defPlayer.life -= atkCardMonster.atk
             interface.printBoardForPlayer(player, teams)
           }
-          else
-            interface.moveError(atkCard)
+          else interface.moveError(atkCard)
         case EndTurn => interface.endTurn(player)
         case HumanInput => throw DeckBrawlException() // TODO: Better handling of HumanInput
       }
@@ -105,7 +121,7 @@ class Game(protected val interface: GameInterface) {
   }
 
   private def winners(teams: Array[Team]): Option[Array[Team]] = {
-    val livingTeams = teams.filter(_.players.exists(_.life != 0))
+    val livingTeams = teams.filter(_.players.exists(_.life > 0))
     if (livingTeams.length == 1) Some(livingTeams) else None
   }
 }

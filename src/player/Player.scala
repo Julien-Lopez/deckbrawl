@@ -1,6 +1,7 @@
 package player
 
 import deckbrawl.DeckBrawl
+import game.{Game, Team}
 import game.card.Card
 
 import scala.annotation.tailrec
@@ -24,7 +25,7 @@ abstract class Player(val name: String) {
     drawn
   }
   def take(card: Card): Unit = hand += card
-  def play(): Action
+  def play(game: Game, teams: Array[Team]): Action
 
   override def toString: String = name
 }

@@ -19,6 +19,12 @@ object ConsoleInterface extends GameInterface {
   }
   override def checkGraveyard(p: Player, graveyardOwner: Player): Unit =
     Console println p + " checks " + graveyardOwner + "'s graveyard."
+  override def attack(atkPlayer: Player, atkCard: Card, defPlayer: Player, defCard: Card): Unit =
+    Console println atkPlayer + "'s " + atkCard + " attacks " + defPlayer + "'s " + defCard + "!"
+  override def attackPlayer(atkPlayer: Player, atkCard: Card, defPlayer: Player): Unit =
+    Console println atkPlayer + "'s " + atkCard + " attacks " + defPlayer + "!"
+  override def cardDestroyed(player: Player, card: Card): Unit =
+    Console println player + "'s " + card + " has been destroyed!"
   override def moveError(c: Card): Unit = Console println "Invalid card to play: " + c
   override def wins(winners: Array[Team]): Unit = {
     Console println "Game over! Winners:"
@@ -45,7 +51,7 @@ object ConsoleInterface extends GameInterface {
     input match {
       case play(i) =>
         cardIndexes.get(i.toInt) match {
-          case Some((p, j)) if j < p.hand.size => PlayCard(p, j)
+          case Some((p, j)) if j < p.hand.size => PlayCard(p, p.hand(j))
           case _ =>
           Console println "Invalid number for a card: " + i
           humanInput(human, teams)
@@ -60,8 +66,8 @@ object ConsoleInterface extends GameInterface {
       case attack(i, j) =>
         (cardIndexes.get(i.toInt), cardIndexes.get(j.toInt)) match {
           case (Some((atkPlayer, atkIndex)), Some((defPlayer, defIndex)))
-            if atkIndex < atkPlayer.monsterBoard.size && defIndex < defPlayer.monsterBoard.size =>
-            Attack(atkPlayer, atkIndex, defPlayer, defIndex)
+            if atkIndex < atkPlayer.monsterBoard.size && defIndex < defPlayer.monsterBoard.size && atkPlayer == human =>
+            Attack(atkPlayer, atkPlayer.monsterBoard(atkIndex), defPlayer, defPlayer.monsterBoard(defIndex))
           case _ =>
             Console println "Invalid attack: " + input
             humanInput(human, teams)
@@ -69,7 +75,7 @@ object ConsoleInterface extends GameInterface {
       case attackPlayer(i, pName) =>
         (cardIndexes.get(i.toInt), findPlayer(pName, teams))  match {
           case (Some((atkPlayer, atkIndex)), Some(player)) if atkIndex < atkPlayer.monsterBoard.size =>
-            AttackPlayer(atkPlayer, atkIndex, player)
+            AttackPlayer(atkPlayer.monsterBoard(atkIndex), player)
           case _ =>
             Console println "Invalid attack: " + input
             humanInput(human, teams)
@@ -87,19 +93,19 @@ object ConsoleInterface extends GameInterface {
 
   override def printBoardForPlayer(player: Player, teams: Array[Team]): Unit = {
     var index = 0
-    def printCards(cards: Traversable[Card]): Unit =
+    def printCards(owner: Player, cards: Traversable[Card]): Unit =
       if (cards.nonEmpty)
         Console println cards.foldLeft(("", 0))((acc, c) => {
           index += 1
-          cardIndexes.put(index, (player, acc._2))
+          cardIndexes.put(index, (owner, acc._2))
           (acc._1 + index + ":" + c + " ", acc._2 + 1)
         })._1
     cardIndexes = new mutable.HashMap()
     teams.foreach(team => team.players.foreach(p => {
       Console println p.name + "[" + p.life + "]:"
-      printCards(p.monsterBoard)
+      printCards(p, p.monsterBoard)
     }))
     Console print "Hand: "
-    printCards(player.hand)
+    printCards(player, player.hand)
   }
 }
