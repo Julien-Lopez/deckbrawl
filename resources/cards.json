@@ -1,19 +1,20 @@
 { "cards": {
   "monsters": [
-      { "id": 1,
-        "name": "Brave warrior",
+      { "name": "Brave warrior",
         "effects": [],
         "atk": 3,
         "life": 2
       },
-      { "id": 2,
-        "name": "Cunning archer",
+      { "name": "Cunning archer",
         "effects": [],
         "atk": 2,
         "life": 3
       }
   ],
   "spells": [
+      { "name": "Reinforcements",
+        "effects": ["draw(1)"]
+      }
   ],
   "traps": [
   ]

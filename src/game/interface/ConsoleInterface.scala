@@ -1,7 +1,7 @@
 package game.interface
 
 import game._
-import game.card.Card
+import game.card._
 import player._
 
 import scala.annotation.tailrec
@@ -51,7 +51,13 @@ object ConsoleInterface extends GameInterface {
     input match {
       case play(i) =>
         cardIndexes.get(i.toInt) match {
-          case Some((p, j)) if j < p.hand.size => PlayCard(p, p.hand(j))
+          case Some((p, j)) if j < p.hand.size =>
+            val card = p.hand(j)
+            (card match {
+              case _: Monster => NormalSummon
+              case _: Spell => PlaySpell
+              case _: Trap => SetTrap
+            })(p, card)
           case _ =>
           Console println "Invalid number for a card: " + i
           humanInput(human, teams)

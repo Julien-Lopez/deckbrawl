@@ -1,7 +1,7 @@
 package game
 
 import deckbrawl.DeckBrawlException
-import game.card.{Card, Monster}
+import game.card._
 import game.interface.GameInterface
 import player._
 
@@ -69,10 +69,29 @@ class Game(protected val interface: GameInterface) {
       // Execute the action
       action match {
         case CheckGraveyard(graveyardOwner) => interface.checkGraveyard(player, graveyardOwner)
-        case PlayCard(p, c) =>
-          if (p == player && player.monsterBoard.size < nbMonsterZones && nbNormalSummons < nbNormalSummonsPerTurn) {
+        case NormalSummon(p, c) =>
+          if (p == player && p.hand.contains(c) && player.monsterBoard.size < nbMonsterZones
+            && nbNormalSummons < nbNormalSummonsPerTurn) {
             nbNormalSummons += 1
             player.monsterBoard += c
+            player.hand -= c
+            interface.printBoardForPlayer(player, teams)
+          }
+          else interface.moveError(c)
+        case PlaySpell(p, c) =>
+          if (p == player && p.hand.contains(c) && player.mpBoard.size < nbMpZones) {
+            player.mpBoard += c
+            player.hand -= c
+            interface.printBoardForPlayer(player, teams)
+            c.asInstanceOf[Spell].effects.foreach(effect => {
+              applyEffect(player, teams, effect)
+              interface.printBoardForPlayer(player, teams)
+            })
+          }
+          else interface.moveError(c)
+        case SetTrap(p, c) =>
+          if (p == player && p.hand.contains(c) && player.mpBoard.size < nbMpZones) {
+            player.mpBoard += c
             player.hand -= c
             interface.printBoardForPlayer(player, teams)
           }
@@ -118,6 +137,13 @@ class Game(protected val interface: GameInterface) {
       res = winners(teams)
     }
     res
+  }
+
+  private def applyEffect(player: Player, teams: Array[Team], effect: Effect): Unit = {
+    effect match {
+      case Draw(n) => player.draw(n)
+      case Camouflage => throw DeckBrawlException("UNIMPLEMENTED") // TODO
+    }
   }
 
   private def winners(teams: Array[Team]): Option[Array[Team]] = {
