@@ -110,6 +110,7 @@ object ConsoleInterface extends GameInterface {
     teams.foreach(team => team.players.foreach(p => {
       Console println p.name + "[" + p.life + "]:"
       printCards(p, p.monsterBoard)
+      printCards(p, p.mpBoard)
     }))
     Console print "Hand: "
     printCards(player, player.hand)

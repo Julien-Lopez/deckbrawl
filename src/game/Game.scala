@@ -87,6 +87,8 @@ class Game(protected val interface: GameInterface) {
               applyEffect(player, teams, effect)
               interface.printBoardForPlayer(player, teams)
             })
+            player.mpBoard -= c
+            interface.printBoardForPlayer(player, teams)
           }
           else interface.moveError(c)
         case SetTrap(p, c) =>
@@ -143,6 +145,7 @@ class Game(protected val interface: GameInterface) {
     effect match {
       case Draw(n) => player.draw(n)
       case Camouflage => throw DeckBrawlException("UNIMPLEMENTED") // TODO
+      case DestroyAttacking => throw DeckBrawlException("UNIMPLEMENTED")
     }
   }
 

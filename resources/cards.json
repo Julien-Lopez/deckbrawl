@@ -1,21 +1,20 @@
 { "cards": {
   "monsters": [
-      { "name": "Brave warrior",
-        "effects": [],
-        "atk": 3,
-        "life": 2
-      },
-      { "name": "Cunning archer",
-        "effects": [],
-        "atk": 2,
-        "life": 3
-      }
+    { "name": "Brave warrior",
+      "effects": [],
+      "atk": 3,
+      "life": 2 },
+    { "name": "Cunning archer",
+      "effects": [],
+      "atk": 2,
+      "life": 3 }
   ],
   "spells": [
-      { "name": "Reinforcements",
-        "effects": ["draw(1)"]
-      }
+    { "name": "Reinforcements",
+      "effects": ["draw(1)"] }
   ],
   "traps": [
+    { "name": "Hidden trap door",
+      "effects": ["destroyAttacking"] }
   ]
 }}
