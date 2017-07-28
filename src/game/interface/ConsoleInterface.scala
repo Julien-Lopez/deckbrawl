@@ -9,7 +9,7 @@ import scala.collection.mutable
 import scala.io.StdIn._
 
 object ConsoleInterface extends GameInterface {
-  var cardIndexes: mutable.Map[Int, (Player, Int)] = _
+  var cardIndexes: mutable.Map[Int, (Player, Card)] = _
   override def startGame(teams: Array[Team]): Unit = Console println "Deck brawl!"
   override def order(teams: Array[Team]): Array[Team] = teams
   override def firstDraw(p: Player, cards: List[Card], teams: Array[Team]): Unit = ()
@@ -51,13 +51,12 @@ object ConsoleInterface extends GameInterface {
     input match {
       case play(i) =>
         cardIndexes.get(i.toInt) match {
-          case Some((p, j)) if j < p.hand.size =>
-            val card = p.hand(j)
-            (card match {
+          case Some((p, c)) if p.hand.contains(c) =>
+            (c match {
               case _: Monster => NormalSummon
               case _: Spell => PlaySpell
               case _: Trap => SetTrap
-            })(p, card)
+            })(p, c)
           case _ =>
           Console println "Invalid number for a card: " + i
           humanInput(human, teams)
@@ -71,17 +70,17 @@ object ConsoleInterface extends GameInterface {
         }
       case attack(i, j) =>
         (cardIndexes.get(i.toInt), cardIndexes.get(j.toInt)) match {
-          case (Some((atkPlayer, atkIndex)), Some((defPlayer, defIndex)))
-            if atkIndex < atkPlayer.monsterBoard.size && defIndex < defPlayer.monsterBoard.size && atkPlayer == human =>
-            Attack(atkPlayer, atkPlayer.monsterBoard(atkIndex), defPlayer, defPlayer.monsterBoard(defIndex))
+          case (Some((atkPlayer, atkCard)), Some((defPlayer, defCard))) if atkPlayer.monsterBoard.contains(atkCard)
+            && defPlayer.monsterBoard.contains(defCard) && atkPlayer == human =>
+            Attack(atkPlayer, atkCard, defPlayer, defCard)
           case _ =>
             Console println "Invalid attack: " + input
             humanInput(human, teams)
         }
       case attackPlayer(i, pName) =>
-        (cardIndexes.get(i.toInt), findPlayer(pName, teams))  match {
-          case (Some((atkPlayer, atkIndex)), Some(player)) if atkIndex < atkPlayer.monsterBoard.size =>
-            AttackPlayer(atkPlayer.monsterBoard(atkIndex), player)
+        (cardIndexes.get(i.toInt), findPlayer(pName, teams)) match {
+          case (Some((atkPlayer, atkCard)), Some(player)) if atkPlayer.monsterBoard.contains(atkCard) =>
+            AttackPlayer(atkCard, player)
           case _ =>
             Console println "Invalid attack: " + input
             humanInput(human, teams)
@@ -101,11 +100,11 @@ object ConsoleInterface extends GameInterface {
     var index = 0
     def printCards(owner: Player, cards: Traversable[Card]): Unit =
       if (cards.nonEmpty)
-        Console println cards.foldLeft(("", 0))((acc, c) => {
+        Console println cards.foldLeft("")((acc, c) => {
           index += 1
-          cardIndexes.put(index, (owner, acc._2))
-          (acc._1 + index + ":" + c + " ", acc._2 + 1)
-        })._1
+          cardIndexes.put(index, (owner, c))
+          acc + index + ":" + c + " "
+        })
     cardIndexes = new mutable.HashMap()
     teams.foreach(team => team.players.foreach(p => {
       Console println p.name + "[" + p.life + "]:"
