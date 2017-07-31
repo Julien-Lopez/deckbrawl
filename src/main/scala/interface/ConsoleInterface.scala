@@ -1,4 +1,4 @@
-package game.interface
+package interface
 
 import game._
 import game.card._

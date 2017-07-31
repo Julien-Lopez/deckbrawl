@@ -1,10 +1,10 @@
-package game.interface
+package interface
 
 import game.Team
 import game.card.Card
 import player.{Action, Player}
 
-private[game] trait GameInterface {
+trait GameInterface {
   def startGame(teams: Array[Team]): Unit
   def order(teams: Array[Team]): Array[Team]
   def firstDraw(p: Player, cards: List[Card], teams: Array[Team]): Unit

@@ -2,7 +2,7 @@ package game
 
 import deckbrawl.DeckBrawlException
 import game.card._
-import game.interface.GameInterface
+import interface.GameInterface
 import player._
 
 import scala.annotation.tailrec

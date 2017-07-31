@@ -2,10 +2,7 @@ package deckbrawl
 
 import deckbrawl.JSONParser.{JSONInteger, JSONList, JSONObject, JSONString}
 import game.card._
-import game.interface.ConsoleInterface
-import game.{Game, Team}
-import player.Human
-import player.ai.Dummy
+import interface.GraphicalInterface
 
 import scala.collection.mutable.ListBuffer
 import scala.io.Source
@@ -38,8 +35,6 @@ object DeckBrawl {
   }
 
   def main(args: Array[String]): Unit = {
-    val player1 = new Human("Tea")
-    val player2 = new Dummy("Joey")
-    new Game(ConsoleInterface).start(Array(new Team("Friendship", Array(player1)), new Team("Lucky", Array(player2))))
+    GraphicalInterface.main(args)
   }
 }
