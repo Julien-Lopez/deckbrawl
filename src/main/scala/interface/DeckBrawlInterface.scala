@@ -4,7 +4,7 @@ import game.Team
 import game.card.Card
 import player.{Action, Player}
 
-trait GameInterface {
+trait DeckBrawlInterface {
   def startGame(teams: Array[Team]): Unit
   def order(teams: Array[Team]): Array[Team]
   def firstDraw(p: Player, cards: List[Card], teams: Array[Team]): Unit

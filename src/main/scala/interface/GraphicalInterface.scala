@@ -14,7 +14,7 @@ import scalafx.scene.control.Button
 import scalafx.scene.layout.HBox
 import scalafx.scene.paint.Color._
 
-object GraphicalInterface extends JFXApp with GameInterface {
+object GraphicalInterface extends JFXApp with DeckBrawlInterface {
   val newGameButton = new Button("New game")
   newGameButton.onAction = handle {
     stage.scene = gameScene

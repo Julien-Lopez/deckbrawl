@@ -8,7 +8,7 @@ import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.io.StdIn._
 
-object ConsoleInterface extends GameInterface {
+object ConsoleInterface extends DeckBrawlInterface {
   var cardIndexes: mutable.Map[Int, (Player, Card)] = _
   override def startGame(teams: Array[Team]): Unit = Console println "Deck brawl!"
   override def order(teams: Array[Team]): Array[Team] = teams

@@ -2,14 +2,14 @@ package game
 
 import deckbrawl.DeckBrawlException
 import game.card._
-import interface.GameInterface
+import interface.DeckBrawlInterface
 import player._
 
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-class Game(protected val interface: GameInterface) {
+class Game(protected val interface: DeckBrawlInterface) {
   protected val actionHistory: ListBuffer[(Player, Action)] = ListBuffer()
 
   // Constants
