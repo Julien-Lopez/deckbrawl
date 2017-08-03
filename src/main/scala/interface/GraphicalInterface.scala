@@ -1,36 +1,65 @@
 package interface
 
+import java.io.{FileOutputStream, ObjectOutputStream}
+
+import deckbrawl.DeckBrawl
 import game.card.Card
 import game.{Game, Team}
 import player.ai.Dummy
-import player.{Action, EndTurn, Human, Player}
+import player._
 
-import scalafx.Includes._
+import scalafx.Includes.handle
 import scalafx.application.JFXApp
 import scalafx.application.JFXApp.PrimaryStage
+import scalafx.collections.ObservableBuffer
 import scalafx.geometry.Insets
 import scalafx.scene.Scene
-import scalafx.scene.control.Button
+import scalafx.scene.control.Alert.AlertType
+import scalafx.scene.control.{Alert, Button, ChoiceBox, TextInputDialog}
 import scalafx.scene.layout.HBox
-import scalafx.scene.paint.Color._
+import scalafx.scene.paint.Color.Black
 
 object GraphicalInterface extends JFXApp with DeckBrawlInterface {
+  // Menu scene
   val newGameButton = new Button("New game")
   newGameButton.onAction = handle {
-    stage.scene = gameScene
-    val player1 = new Human("Tea")
-    val player2 = new Dummy("Joey")
-    new Game(this).start(Array(new Team("Friendship", Array(player1)), new Team("Lucky", Array(player2))))
+    stage.scene = newGameScene
   }
-  val menuButton = new Button("Return to menu")
-  menuButton.onAction = handle {
-    Console.println("Going back to menu")
-    stage.scene = menuScene
+
+  val playerRegisterButton = new Button("Register new player")
+  playerRegisterButton.onAction = handle {
+    val dialog = new TextInputDialog() {
+      initOwner(stage)
+      title = "Register new player"
+      headerText = "Welcome to the new player registration service!"
+      contentText = "Please enter your name:"
+    }
+
+    val result = dialog.showAndWait()
+
+    result match {
+      case Some(name) =>
+        val newPlayer = new PlayerProfile(name)
+        if (DeckBrawl.players.exists(_.idName == newPlayer.idName))
+          new Alert(AlertType.Error) {
+            initOwner(stage)
+            title = "Error"
+            headerText = "Error registering the new player."
+            contentText = "Sorry, that name is already taken. Please choose another name."
+          }.showAndWait()
+        else {
+          val fos = new FileOutputStream(DeckBrawl.resourcesFolder + "/" + newPlayer.idName + ".data")
+          val oos = new ObjectOutputStream(fos)
+          DeckBrawl.players += newPlayer
+          oos.writeObject(newPlayer)
+        }
+      case None =>
+    }
   }
+
   val exitButton = new Button("Exit")
   exitButton.setCancelButton(true)
   exitButton.onAction = handle {
-    Console.println("Exiting")
     System.exit(0)
   }
 
@@ -38,9 +67,42 @@ object GraphicalInterface extends JFXApp with DeckBrawlInterface {
     fill = Black
     content = new HBox {
       padding = Insets(20)
-      children = List(newGameButton, exitButton)
+      children = List(newGameButton, playerRegisterButton, exitButton)
     }
   }
+
+  val player1SelectBox = new ChoiceBox[String]()
+  val player1SelectBoxBuffer = new ObservableBuffer[String]()
+  var player1: Player = _
+  var player2: Player = new Dummy(DeckBrawl.ais.head)
+  DeckBrawl.players.foreach(player1SelectBoxBuffer += _.name)
+  player1SelectBox.items = player1SelectBoxBuffer
+  if (player1SelectBoxBuffer.nonEmpty) {
+    player1SelectBox.value = player1SelectBoxBuffer.head
+    DeckBrawl.player = DeckBrawl.players.find(_.name == player1SelectBox.value.value).get
+    player1 = new Human(DeckBrawl.player)
+  }
+
+  val startGameButton = new Button("Start game")
+  startGameButton.onAction = handle {
+    stage.scene = gameScene
+    new Game(this).start(Array(new Team("Team1", Array(new Human(DeckBrawl.player))), new Team("Lucky", Array(new Dummy(new PlayerProfile("Joey"))))))
+  }
+
+  val newGameScene = new Scene {
+    fill = Black
+    content = new HBox {
+      padding = Insets(20)
+      children = List(player1SelectBox, startGameButton)
+    }
+  }
+
+  // Game scene
+  val menuButton = new Button("Return to menu")
+  menuButton.onAction = handle {
+    stage.scene = menuScene
+  }
+
   val gameScene = new Scene {
     fill = Black
     content = new HBox {
@@ -52,6 +114,10 @@ object GraphicalInterface extends JFXApp with DeckBrawlInterface {
   stage = new PrimaryStage {
     title = "DeckBrawl"
     scene = menuScene
+  }
+
+  override def startInterface(): Unit = {
+    main(Array())
   }
 
   override def startGame(teams: Array[Team]): Unit = {

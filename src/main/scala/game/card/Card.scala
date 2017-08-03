@@ -7,6 +7,6 @@ abstract class Card(val data: CardData) {
   override def toString: String = name
 }
 
-abstract class CardData(val id: Int, val origName: String, val origEffects: Array[Effect]) {
+abstract class CardData(val id: Int, val origName: String, val origEffects: Array[Effect]) extends Serializable {
   def createCard(): Card
 }

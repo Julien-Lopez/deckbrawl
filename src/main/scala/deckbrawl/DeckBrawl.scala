@@ -1,15 +1,20 @@
 package deckbrawl
 
+import java.io.{File, FileInputStream, ObjectInputStream}
+
 import deckbrawl.JSONParser.{JSONInteger, JSONList, JSONObject, JSONString}
 import game.card._
-import interface.GraphicalInterface
+import interface.{DeckBrawlInterface, GraphicalInterface}
+import player.PlayerProfile
 
 import scala.collection.mutable.ListBuffer
 import scala.io.Source
 
 object DeckBrawl {
+  val interface: DeckBrawlInterface = GraphicalInterface
+  val resourcesFolder: String = "resources"
   val cardDatabase: Array[CardData] = {
-    val json = JSONParser.parse(Source.fromFile("resources/cards.json").getLines().foldLeft("")((acc, l) => acc + l))
+    val json = JSONParser.parse(Source.fromFile(resourcesFolder + "/cards.json").getLines().foldLeft("")((acc, l) => acc + l))
     val res: ListBuffer[CardData] = new ListBuffer[CardData]()
     var id = 0
 
@@ -33,8 +38,18 @@ object DeckBrawl {
     }
     res.toArray
   }
+  var player: PlayerProfile = new PlayerProfile("Tea")
+  val players: ListBuffer[PlayerProfile] =
+    new File(resourcesFolder).listFiles
+      .filter(_.getPath.endsWith(".data"))
+      .map(f => {
+        val fis = new FileInputStream(f)
+        val ois = new ObjectInputStream(fis)
+        ois.readObject.asInstanceOf[PlayerProfile]
+      }).to
+  val ais: Array[PlayerProfile] = Array(new PlayerProfile("Tea"))
 
   def main(args: Array[String]): Unit = {
-    GraphicalInterface.main(args)
+    interface.startInterface()
   }
 }

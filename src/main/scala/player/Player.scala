@@ -2,13 +2,13 @@ package player
 
 import deckbrawl.DeckBrawl
 import game.{Game, Team}
-import game.card.Card
+import game.card.{Card, CardData}
 
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
-abstract class Player(val name: String) {
+abstract class Player(val profile: PlayerProfile) {
   val deck: ListBuffer[Card] = ListBuffer.fill(40)(
     DeckBrawl.cardDatabase(Random.nextInt(DeckBrawl.cardDatabase.length)).createCard())
   val hand: ListBuffer[Card] = ListBuffer()
@@ -27,5 +27,10 @@ abstract class Player(val name: String) {
   def take(card: Card): Unit = hand += card
   def play(game: Game, teams: Array[Team]): Action
 
-  override def toString: String = name
+  override def toString: String = profile.name
+}
+
+class PlayerProfile(val name: String) extends Serializable {
+  val idName: String = name.toLowerCase
+  val deckRecipes: ListBuffer[ListBuffer[CardData]] = ListBuffer()
 }

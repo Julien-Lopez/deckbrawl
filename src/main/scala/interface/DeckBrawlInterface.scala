@@ -5,6 +5,9 @@ import game.card.Card
 import player.{Action, Player}
 
 trait DeckBrawlInterface {
+  def startInterface(): Unit
+
+  // In game
   def startGame(teams: Array[Team]): Unit
   def order(teams: Array[Team]): Array[Team]
   def firstDraw(p: Player, cards: List[Card], teams: Array[Team]): Unit

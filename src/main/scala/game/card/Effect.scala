@@ -2,7 +2,7 @@ package game.card
 
 import deckbrawl.DeckBrawlException
 
-sealed trait Effect
+sealed trait Effect extends Serializable
 {
   override def toString: String = this.getClass.getSimpleName.replace("$", "")
 }

@@ -4,7 +4,7 @@ import game.{Game, Team}
 import game.card.{Monster, Spell, Trap}
 import player._
 
-sealed class Dummy(override val name: String) extends Player(name)
+sealed class Dummy(override val profile: PlayerProfile) extends Player(profile)
 {
   override def play(game: Game, teams: Array[Team]): Action = {
     if (game.nbNormalSummons < game.nbNormalSummonsPerTurn && monsterBoard.size < 5

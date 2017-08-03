@@ -10,6 +10,8 @@ import scala.io.StdIn._
 
 object ConsoleInterface extends DeckBrawlInterface {
   var cardIndexes: mutable.Map[Int, (Player, Card)] = _
+
+  override def startInterface(): Unit = {}
   override def startGame(teams: Array[Team]): Unit = Console println "Deck brawl!"
   override def order(teams: Array[Team]): Array[Team] = teams
   override def firstDraw(p: Player, cards: List[Card], teams: Array[Team]): Unit = ()
@@ -35,7 +37,7 @@ object ConsoleInterface extends DeckBrawlInterface {
     @tailrec
     def findPlayer(pName: String, teams: Array[Team]): Option[Player] = {
       if (teams.isEmpty) None else {
-        val player = teams.head.players.find(_.name == pName)
+        val player = teams.head.players.find(_.profile.name == pName)
         if (player.isEmpty) findPlayer(pName, teams.tail) else player
       }
     }
@@ -107,7 +109,7 @@ object ConsoleInterface extends DeckBrawlInterface {
         })
     cardIndexes = new mutable.HashMap()
     teams.foreach(team => team.players.foreach(p => {
-      Console println p.name + "[" + p.life + "]:"
+      Console println p.profile.name + "[" + p.life + "]:"
       printCards(p, p.monsterBoard)
       printCards(p, p.mpBoard)
     }))
