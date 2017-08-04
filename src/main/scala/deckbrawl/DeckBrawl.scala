@@ -13,6 +13,7 @@ import scala.io.Source
 object DeckBrawl {
   val interface: DeckBrawlInterface = GraphicalInterface
   val resourcesFolder: String = "resources"
+  val imagesFolder: String = resourcesFolder + "/images"
   val cardDatabase: Array[CardData] = {
     val json = JSONParser.parse(Source.fromFile(resourcesFolder + "/cards.json").getLines().foldLeft("")((acc, l) => acc + l))
     val res: ListBuffer[CardData] = new ListBuffer[CardData]()

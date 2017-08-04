@@ -1,12 +1,12 @@
 package interface
 
-import java.io.{FileOutputStream, ObjectOutputStream}
+import java.io.{FileInputStream, FileOutputStream, ObjectOutputStream}
 
 import deckbrawl.DeckBrawl
 import game.card.Card
 import game.{Game, Team}
-import player.ai.Dummy
 import player._
+import player.ai.Dummy
 
 import scalafx.Includes.handle
 import scalafx.application.JFXApp
@@ -16,17 +16,17 @@ import scalafx.geometry.Insets
 import scalafx.scene.Scene
 import scalafx.scene.control.Alert.AlertType
 import scalafx.scene.control.{Alert, Button, ChoiceBox, TextInputDialog}
-import scalafx.scene.layout.HBox
-import scalafx.scene.paint.Color.Black
+import scalafx.scene.image.Image
+import scalafx.scene.layout._
 
 object GraphicalInterface extends JFXApp with DeckBrawlInterface {
   // Menu scene
-  val newGameButton = new Button("New game")
+  private val newGameButton = new Button("New game")
   newGameButton.onAction = handle {
     stage.scene = newGameScene
   }
 
-  val playerRegisterButton = new Button("Register new player")
+  private val playerRegisterButton = new Button("Register new player")
   playerRegisterButton.onAction = handle {
     val dialog = new TextInputDialog() {
       initOwner(stage)
@@ -57,24 +57,30 @@ object GraphicalInterface extends JFXApp with DeckBrawlInterface {
     }
   }
 
-  val exitButton = new Button("Exit")
+  private val exitButton = new Button("Exit")
   exitButton.setCancelButton(true)
   exitButton.onAction = handle {
     System.exit(0)
   }
 
-  val menuScene = new Scene {
-    fill = Black
-    content = new HBox {
-      padding = Insets(20)
-      children = List(newGameButton, playerRegisterButton, exitButton)
+  private val tableBackground = new Background(Array(new BackgroundImage(
+    new Image(new FileInputStream(DeckBrawl.imagesFolder + "/table.jpg")), BackgroundRepeat.NoRepeat,
+    BackgroundRepeat.NoRepeat, new BackgroundPosition(BackgroundPosition.Default), BackgroundSize.Default)))
+
+  private val menuScene = new Scene {
+    content = new Pane {
+      children = new HBox {
+        padding = Insets(20)
+        children = List(newGameButton, playerRegisterButton, exitButton)
+      }
+      background = tableBackground
     }
   }
 
-  val player1SelectBox = new ChoiceBox[String]()
-  val player1SelectBoxBuffer = new ObservableBuffer[String]()
-  var player1: Player = _
-  var player2: Player = new Dummy(DeckBrawl.ais.head)
+  private val player1SelectBox = new ChoiceBox[String]()
+  private val player1SelectBoxBuffer = new ObservableBuffer[String]()
+  private var player1: Player = _
+  private val player2: Player = new Dummy(DeckBrawl.ais.head)
   DeckBrawl.players.foreach(player1SelectBoxBuffer += _.name)
   player1SelectBox.items = player1SelectBoxBuffer
   if (player1SelectBoxBuffer.nonEmpty) {
@@ -83,31 +89,35 @@ object GraphicalInterface extends JFXApp with DeckBrawlInterface {
     player1 = new Human(DeckBrawl.player)
   }
 
-  val startGameButton = new Button("Start game")
+  private val startGameButton = new Button("Start game")
   startGameButton.onAction = handle {
     stage.scene = gameScene
-    new Game(this).start(Array(new Team("Team1", Array(new Human(DeckBrawl.player))), new Team("Lucky", Array(new Dummy(new PlayerProfile("Joey"))))))
+    new Game(this).start(Array(new Team("Team1", Array(player1)), new Team("Lucky", Array(player2))))
   }
 
-  val newGameScene = new Scene {
-    fill = Black
-    content = new HBox {
-      padding = Insets(20)
-      children = List(player1SelectBox, startGameButton)
+  private val newGameScene = new Scene {
+    content = new Pane {
+      children = new HBox {
+        padding = Insets(20)
+        children = List(player1SelectBox, startGameButton)
+      }
+      background = tableBackground
     }
   }
 
   // Game scene
-  val menuButton = new Button("Return to menu")
+  private val menuButton = new Button("Return to menu")
   menuButton.onAction = handle {
     stage.scene = menuScene
   }
 
-  val gameScene = new Scene {
-    fill = Black
-    content = new HBox {
-      padding = Insets(20)
-      children = List(menuButton)
+  private val gameScene = new Scene {
+    content = new Pane {
+      children = new HBox {
+        padding = Insets(20)
+        children = List(menuButton)
+      }
+      background = tableBackground
     }
   }
 
