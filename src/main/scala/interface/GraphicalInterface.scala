@@ -18,6 +18,9 @@ import scalafx.scene.control.Alert.AlertType
 import scalafx.scene.control.{Alert, Button, ChoiceBox, TextInputDialog}
 import scalafx.scene.image.Image
 import scalafx.scene.layout._
+import scalafx.scene.paint.Color
+import scalafx.scene.shape.Rectangle
+import scalafx.scene.text.Text
 
 object GraphicalInterface extends JFXApp with DeckBrawlInterface {
   // Menu scene
@@ -77,6 +80,7 @@ object GraphicalInterface extends JFXApp with DeckBrawlInterface {
     }
   }
 
+  // New game scene
   private val player1SelectBox = new ChoiceBox[String]()
   private val player1SelectBoxBuffer = new ObservableBuffer[String]()
   private var player1: Player = _
@@ -111,14 +115,98 @@ object GraphicalInterface extends JFXApp with DeckBrawlInterface {
     stage.scene = menuScene
   }
 
-  private val gameScene = new Scene {
-    content = new Pane {
-      children = new HBox {
-        padding = Insets(20)
-        children = List(menuButton)
-      }
-      background = tableBackground
+  private val spaceBetween = Insets(15, 12, 15, 12)
+  private val zoneWidth = 100
+  private val zoneHeight = 150
+
+  private val board = new BorderPane {
+    background = tableBackground
+    top = new HBox {
+      children = new Button("Hand player 2")
+      padding = spaceBetween
     }
+    center = new VBox {
+      children = Array(
+        new VBox {
+          children = Array.fill(2) {
+            new HBox {
+              children = Array.fill(6) {
+                new Rectangle {
+                  stroke = Color.White
+                  fill = Color.Transparent
+                  width = zoneWidth
+                  height = zoneHeight
+                }
+              }
+            }
+          }
+        },
+        new HBox {
+          children = Array(
+            new Button("DP") {
+              prefWidth = zoneWidth
+            },
+            new Button("SP") {
+              prefWidth = zoneWidth
+            },
+            new Button("MP1") {
+              prefWidth = zoneWidth
+            },
+            new Button("BP") {
+              prefWidth = zoneWidth
+            },
+            new Button("MP2") {
+              prefWidth = zoneWidth
+            },
+            new Button("EP") {
+              prefWidth = zoneWidth
+            }
+          )
+        },
+        new VBox {
+          children = Array.fill(2) {
+            new HBox {
+              children = Array.fill(6) {
+                new Rectangle {
+                  stroke = Color.White
+                  fill = Color.Transparent
+                  width = zoneWidth
+                  height = zoneHeight
+                }
+              }
+            }
+          }
+        }
+      )
+      padding = spaceBetween
+    }
+    bottom = new HBox {
+      children = new Button("Hand player 1")
+      padding = spaceBetween
+    }
+  }
+  private val gameScene = new Scene {
+    content = new VBox {
+      children = List(
+        menuButton,
+        board
+      )
+    }
+  }
+
+  private def makeCard(card: Card) = new StackPane {
+    children = List(
+      new Rectangle {
+        stroke = Color.Aquamarine
+        fill = Color.Black
+        width = 50
+        height = 50
+      },
+      new Text {
+        text = card.data.origName
+        fill = Color.AntiqueWhite
+      },
+    )
   }
 
   stage = new PrimaryStage {
