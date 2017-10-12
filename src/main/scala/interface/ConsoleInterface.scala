@@ -1,8 +1,10 @@
 package interface
 
+import deckbrawl.DeckBrawl
 import game._
 import game.card._
 import player._
+import player.ai.Dummy
 
 import scala.annotation.tailrec
 import scala.collection.mutable
@@ -11,9 +13,10 @@ import scala.io.StdIn._
 object ConsoleInterface extends DeckBrawlInterface {
   var cardIndexes: mutable.Map[Int, (Player, Card)] = _
 
-  override def startInterface(): Unit = {}
+  override def startInterface(): Unit = {
+    new Game(this).start(Array(new Team("Team1", Array(new Human(DeckBrawl.players.head))), new Team("Lucky", Array(new Dummy(DeckBrawl.ais.head)))))
+  }
   override def startGame(teams: Array[Team]): Unit = Console println "Deck brawl!"
-  override def order(teams: Array[Team]): Array[Team] = teams
   override def firstDraw(p: Player, cards: List[Card], teams: Array[Team]): Unit = ()
   override def draw(p: Player, cards: List[Card], teams: Array[Team]): Unit = {
     Console println p + " draws!"
@@ -101,16 +104,17 @@ object ConsoleInterface extends DeckBrawlInterface {
   override def printBoardForPlayer(player: Player, teams: Array[Team]): Unit = {
     var index = 0
     def printCards(owner: Player, cards: Traversable[Card]): Unit =
-      if (cards.nonEmpty)
-        Console println cards.foldLeft("")((acc, c) => {
-          index += 1
-          cardIndexes.put(index, (owner, c))
-          acc + index + ":" + c + " "
-        })
+      Console println cards.foldLeft("")((acc, c) => {
+        index += 1
+        cardIndexes.put(index, (owner, c))
+        acc + index + ":" + c + " "
+      })
     cardIndexes = new mutable.HashMap()
     teams.foreach(team => team.players.foreach(p => {
-      Console println p.profile.name + "[" + p.life + "]:"
+      Console println p.profile.name + "[" + p.life + "]"
+      Console print "Monster board:"
       printCards(p, p.monsterBoard)
+      Console print "MP board:"
       printCards(p, p.mpBoard)
     }))
     Console print "Hand: "

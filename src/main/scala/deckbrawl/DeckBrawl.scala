@@ -4,14 +4,14 @@ import java.io.{File, FileInputStream, ObjectInputStream}
 
 import deckbrawl.JSONParser.{JSONInteger, JSONList, JSONObject, JSONString}
 import game.card._
-import interface.{DeckBrawlInterface, GraphicalInterface}
+import interface.{ConsoleInterface, DeckBrawlInterface}
 import player.PlayerProfile
 
 import scala.collection.mutable.ListBuffer
 import scala.io.Source
 
 object DeckBrawl {
-  val interface: DeckBrawlInterface = GraphicalInterface
+  val interface: DeckBrawlInterface = ConsoleInterface
   val resourcesFolder: String = "resources"
   val imagesFolder: String = resourcesFolder + "/images"
   val cardDatabase: Array[CardData] = {

@@ -3,7 +3,7 @@ package interface
 import java.io.{FileInputStream, FileOutputStream, ObjectOutputStream}
 
 import deckbrawl.DeckBrawl
-import game.card.Card
+import game.card.{Card, Monster, MonsterData}
 import game.{Game, Team}
 import player._
 import player.ai.Dummy
@@ -74,7 +74,7 @@ object GraphicalInterface extends JFXApp with DeckBrawlInterface {
     content = new Pane {
       children = new HBox {
         padding = Insets(20)
-        children = List(newGameButton, playerRegisterButton, exitButton)
+        children = Array(newGameButton, playerRegisterButton, exitButton)
       }
       background = tableBackground
     }
@@ -103,7 +103,7 @@ object GraphicalInterface extends JFXApp with DeckBrawlInterface {
     content = new Pane {
       children = new HBox {
         padding = Insets(20)
-        children = List(player1SelectBox, startGameButton)
+        children = Array(player1SelectBox, startGameButton)
       }
       background = tableBackground
     }
@@ -131,11 +131,16 @@ object GraphicalInterface extends JFXApp with DeckBrawlInterface {
           children = Array.fill(2) {
             new HBox {
               children = Array.fill(6) {
-                new Rectangle {
-                  stroke = Color.White
-                  fill = Color.Transparent
-                  width = zoneWidth
-                  height = zoneHeight
+                new StackPane {
+                  children = Array(
+                    new Rectangle {
+                      stroke = Color.White
+                      fill = Color.Transparent
+                      width = zoneWidth
+                      height = zoneHeight
+                    },
+                    makeCard(new Monster(DeckBrawl.cardDatabase.head.asInstanceOf[MonsterData])),
+                  )
                 }
               }
             }
@@ -187,7 +192,7 @@ object GraphicalInterface extends JFXApp with DeckBrawlInterface {
   }
   private val gameScene = new Scene {
     content = new VBox {
-      children = List(
+      children = Array(
         menuButton,
         board
       )
@@ -195,7 +200,7 @@ object GraphicalInterface extends JFXApp with DeckBrawlInterface {
   }
 
   private def makeCard(card: Card) = new StackPane {
-    children = List(
+    children = Array(
       new Rectangle {
         stroke = Color.Aquamarine
         fill = Color.Black
@@ -221,8 +226,6 @@ object GraphicalInterface extends JFXApp with DeckBrawlInterface {
   override def startGame(teams: Array[Team]): Unit = {
     Console.println("startGame")
   }
-
-  override def order(teams: Array[Team]): Array[Team] = teams
 
   override def firstDraw(p: Player, cards: List[Card], teams: Array[Team]): Unit =
     Console.println("firstDraw")

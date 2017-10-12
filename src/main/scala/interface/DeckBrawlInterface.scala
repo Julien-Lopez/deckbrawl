@@ -9,7 +9,6 @@ trait DeckBrawlInterface {
 
   // In game
   def startGame(teams: Array[Team]): Unit
-  def order(teams: Array[Team]): Array[Team]
   def firstDraw(p: Player, cards: List[Card], teams: Array[Team]): Unit
   def draw(p: Player, cards: List[Card], teams: Array[Team]): Unit
   def checkGraveyard(p: Player, graveyardOwner: Player): Unit

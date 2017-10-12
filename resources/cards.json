@@ -11,7 +11,9 @@
   ],
   "spells": [
     { "name": "Reinforcements",
-      "effects": ["draw(1)"] }
+      "effects": ["draw(1)"] },
+    { "name": "Small healing potion",
+      "effects": ["heal(2)"] }
   ],
   "traps": [
     { "name": "Hidden trap door",

@@ -30,8 +30,6 @@ class Game(protected val interface: DeckBrawlInterface) {
 
     // Starts game
     interface.startGame(teams)
-    // Decide who starts
-    interface.order(teams)
     // Give starting hand and life to players
     teams.foreach(team => team.players.foreach(p => {
       p.life = startLife
@@ -144,7 +142,8 @@ class Game(protected val interface: DeckBrawlInterface) {
   private def applyEffect(player: Player, teams: Array[Team], effect: Effect): Unit = {
     effect match {
       case Draw(n) => player.draw(n)
-      case Camouflage => throw DeckBrawlException("UNIMPLEMENTED") // TODO
+      case Heal(n) => player.life += n
+      case Camouflage => throw DeckBrawlException("UNIMPLEMENTED")
       case DestroyAttacking => throw DeckBrawlException("UNIMPLEMENTED")
     }
   }
