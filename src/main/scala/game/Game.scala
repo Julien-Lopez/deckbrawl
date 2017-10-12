@@ -26,16 +26,14 @@ class Game(protected val interface: DeckBrawlInterface) {
   var nbNormalSummons = 0
 
   def start(teams: Array[Team]): Unit = {
-    val schedule = new Schedule(teams)
-
     // Starts game
     interface.startGame(teams)
     // Give starting hand and life to players
-    teams.foreach(team => team.players.foreach(p => {
+    teams.foreach(_.players.foreach(p => {
       p.life = startLife
       interface.firstDraw(p, p.draw(startHand), teams)
     }))
-    interface.wins(playerTurnLoop(teams, schedule))
+    interface.wins(playerTurnLoop(teams, new Schedule(teams)))
   }
 
   @tailrec
@@ -57,7 +55,7 @@ class Game(protected val interface: DeckBrawlInterface) {
     // Turn starts
     interface.startTurn(player)
     // Player draws at the beginning of the turn
-    interface.draw(player, player.draw(nbCardsDrawnInDrawPhase), teams)
+    playerDraw(player, teams, nbCardsDrawnInDrawPhase)
     // As long as the last action was not ending the turn and there is no winners we execute player actions
     while (action != EndTurn && res.isEmpty) {
       // Request a new action from the player
@@ -141,10 +139,19 @@ class Game(protected val interface: DeckBrawlInterface) {
 
   private def applyEffect(player: Player, teams: Array[Team], effect: Effect): Unit = {
     effect match {
-      case Draw(n) => player.draw(n)
+      case Draw(n) => playerDraw(player, teams, n)
       case Heal(n) => player.life += n
       case Camouflage => throw DeckBrawlException("UNIMPLEMENTED")
       case DestroyAttacking => throw DeckBrawlException("UNIMPLEMENTED")
+    }
+  }
+
+  private def playerDraw(player: Player, teams: Array[Team], n: Int): Unit = {
+    try {
+      interface.draw(player, player.draw(n), teams)
+    } catch {
+      case _: DeckBrawlException =>
+        player.life -= 5
     }
   }
 

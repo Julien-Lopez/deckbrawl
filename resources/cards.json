@@ -7,7 +7,15 @@
     { "name": "Cunning archer",
       "effects": [],
       "atk": 2,
-      "life": 3 }
+      "life": 3 },
+    { "name": "Orc berserker",
+      "effects": [],
+      "atk": 4,
+      "life": 1 },
+    { "name": "Tenacious brawler",
+      "effects": [],
+      "atk": 1,
+      "life": 4 }
   ],
   "spells": [
     { "name": "Reinforcements",

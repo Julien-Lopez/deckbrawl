@@ -1,6 +1,6 @@
 package player
 
-import deckbrawl.DeckBrawl
+import deckbrawl.{DeckBrawl, DeckBrawlException}
 import game.{Game, Team}
 import game.card.{Card, CardData}
 
@@ -19,7 +19,10 @@ abstract class Player(val profile: PlayerProfile) {
 
   def draw(n: Int): List[Card] = {
     @tailrec
-    def draw(res: List[Card], i: Int): List[Card] = if (i < n) draw(deck.remove(0) :: res, i + 1) else res
+    def draw(res: List[Card], i: Int): List[Card] =
+      if (i < n)
+        if (deck.nonEmpty) draw(deck.remove(0) :: res, i + 1) else throw DeckBrawlException("Deck is empty")
+      else res
     val drawn = draw(Nil, 0)
     hand ++= drawn
     drawn
