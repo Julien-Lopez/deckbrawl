@@ -129,7 +129,7 @@ class Game(protected val interface: DeckBrawlInterface) {
           }
           else interface.moveError(atkCard)
         case EndTurn => interface.endTurn(player)
-        case HumanInput => throw DeckBrawlException() // TODO: Better handling of HumanInput
+        case _ => throw DeckBrawlException("Unhandled action: " + action)
       }
       actionHistory += ((player, action))
       res = winners(teams)
