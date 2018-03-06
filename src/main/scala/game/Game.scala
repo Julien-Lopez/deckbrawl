@@ -66,7 +66,7 @@ class Game(protected val interface: DeckBrawlInterface) {
       action match {
         case CheckGraveyard(graveyardOwner) => interface.checkGraveyard(player, graveyardOwner)
         case NormalSummon(p, c) =>
-          if (p == player && p.hand.contains(c) && player.monsterBoard.size < nbMonsterZones
+          if (p == player && p.hand.contains(c) && player.monsterBoard.lengthCompare(nbMonsterZones) < 0
             && nbNormalSummons < nbNormalSummonsPerTurn) {
             nbNormalSummons += 1
             player.monsterBoard += c
@@ -75,7 +75,7 @@ class Game(protected val interface: DeckBrawlInterface) {
           }
           else interface.moveError(c)
         case PlaySpell(p, c) =>
-          if (p == player && p.hand.contains(c) && player.mpBoard.size < nbMpZones) {
+          if (p == player && p.hand.contains(c) && player.mpBoard.lengthCompare(nbMpZones) < 0) {
             player.mpBoard += c
             player.hand -= c
             interface.printBoardForPlayer(player, teams)
@@ -88,7 +88,7 @@ class Game(protected val interface: DeckBrawlInterface) {
           }
           else interface.moveError(c)
         case SetTrap(p, c) =>
-          if (p == player && p.hand.contains(c) && player.mpBoard.size < nbMpZones) {
+          if (p == player && p.hand.contains(c) && player.mpBoard.lengthCompare(nbMpZones) < 0) {
             player.mpBoard += c
             player.hand -= c
             interface.printBoardForPlayer(player, teams)
