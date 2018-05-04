@@ -13,8 +13,35 @@ import scala.io.StdIn._
 object ConsoleInterface extends DeckBrawlInterface {
   var cardIndexes: mutable.Map[Int, (Player, Card)] = _
 
+  @tailrec
   override def startInterface(): Unit = {
-    new Game(this).start(Array(new Team("Team1", Array(new Human(DeckBrawl.players.head))), new Team("Lucky", Array(new Dummy(DeckBrawl.ais.head)))))
+    if (DeckBrawl.players.nonEmpty) {
+      Console println "[N]ew game"
+      Console println "[L]ogin"
+    }
+    Console println "[S]ign up"
+    readLine match {
+      case "N" | "n" =>
+        new Game(this).start(Array(new Team("Team1", Array(new Human(DeckBrawl.players.head._2))),
+          new Team("Lucky", Array(new Dummy(DeckBrawl.ais.head)))))
+      case "L" | "l" =>
+        login()
+      case "S" | "s" =>
+        Console println "Enter your name:"
+        DeckBrawl.registerPlayer(readLine)
+      case x => Console println "Unknown command: " + x
+    }
+    startInterface()
+  }
+  @tailrec
+  private def login(): Unit = {
+    Console println DeckBrawl.players.foldLeft("")((acc, p) => acc + p._1)
+    DeckBrawl.players.get(readLine) match {
+      case None =>
+        Console println "Unknown name."
+        login()
+      case Some(p) => DeckBrawl.player = p
+    }
   }
   override def startGame(teams: Array[Team]): Unit = Console println "Deck brawl!"
   override def firstDraw(p: Player, cards: List[Card], teams: Array[Team]): Unit = ()

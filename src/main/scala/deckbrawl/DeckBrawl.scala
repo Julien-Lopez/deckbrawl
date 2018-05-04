@@ -1,6 +1,6 @@
 package deckbrawl
 
-import java.io.{File, FileInputStream, ObjectInputStream}
+import java.io._
 
 import deckbrawl.JSONParser.{JSONInteger, JSONList, JSONObject, JSONString}
 import game.card._
@@ -39,17 +39,30 @@ object DeckBrawl {
     }
     res.toArray
   }
-  var player: PlayerProfile = new PlayerProfile("Tea")
-  val players: ListBuffer[PlayerProfile] =
+  var player: PlayerProfile = _
+  var players: Map[String, PlayerProfile] =
     new File(resourcesFolder).listFiles
       .filter(_.getPath.endsWith(".data"))
       .map(f => {
         val fis = new FileInputStream(f)
         val ois = new ObjectInputStream(fis)
         ois.readObject.asInstanceOf[PlayerProfile]
-      }).to
+      })
+      .map(p => p.name -> p)
+      .toMap[String, PlayerProfile]
   val ais: Array[PlayerProfile] = Array(new PlayerProfile("Tea"))
 
+  def registerPlayer(name: String): Option[PlayerProfile] = {
+    val newPlayer = new PlayerProfile(name)
+    if (DeckBrawl.players.exists(_._1 == newPlayer.idName)) None
+    else {
+      val fos = new FileOutputStream(DeckBrawl.resourcesFolder + "/" + newPlayer.idName + ".data")
+      val oos = new ObjectOutputStream(fos)
+      DeckBrawl.players += (name -> newPlayer)
+      oos.writeObject(newPlayer)
+      Some(newPlayer)
+    }
+  }
   def main(args: Array[String]): Unit = {
     interface.startInterface()
   }

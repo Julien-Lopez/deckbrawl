@@ -42,19 +42,15 @@ object GraphicalInterface extends JFXApp with DeckBrawlInterface {
 
     result match {
       case Some(name) =>
-        val newPlayer = new PlayerProfile(name)
-        if (DeckBrawl.players.exists(_.idName == newPlayer.idName))
-          new Alert(AlertType.Error) {
-            initOwner(stage)
-            title = "Error"
-            headerText = "Error registering the new player."
-            contentText = "Sorry, that name is already taken. Please choose another name."
-          }.showAndWait()
-        else {
-          val fos = new FileOutputStream(DeckBrawl.resourcesFolder + "/" + newPlayer.idName + ".data")
-          val oos = new ObjectOutputStream(fos)
-          DeckBrawl.players += newPlayer
-          oos.writeObject(newPlayer)
+        DeckBrawl.registerPlayer(name) match {
+          case None =>
+            new Alert(AlertType.Error) {
+              initOwner(stage)
+              title = "Error"
+              headerText = "Error registering the new player."
+              contentText = "Sorry, that name is already taken. Please choose another name."
+            }.showAndWait()
+          case Some(_) =>
         }
       case None =>
     }
@@ -85,11 +81,11 @@ object GraphicalInterface extends JFXApp with DeckBrawlInterface {
   private val player1SelectBoxBuffer = new ObservableBuffer[String]()
   private var player1: Player = _
   private val player2: Player = new Dummy(DeckBrawl.ais.head)
-  DeckBrawl.players.foreach(player1SelectBoxBuffer += _.name)
+  DeckBrawl.players.foreach(player1SelectBoxBuffer += _._1)
   player1SelectBox.items = player1SelectBoxBuffer
   if (player1SelectBoxBuffer.nonEmpty) {
     player1SelectBox.value = player1SelectBoxBuffer.head
-    DeckBrawl.player = DeckBrawl.players.find(_.name == player1SelectBox.value.value).get
+    DeckBrawl.player = DeckBrawl.players.find(_._1 == player1SelectBox.value.value).get._2
     player1 = new Human(DeckBrawl.player)
   }
 
